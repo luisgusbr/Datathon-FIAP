@@ -66,7 +66,7 @@ A aplicação possui quatro áreas:
 
 ### Link do Video no Google Drive
 
-https://drive.google.com/file/d/10DTe9YSjBJ0UGo7DTgo5m2r8yhCKFdEm/view?usp=drive_link
+`https://drive.google.com/file/d/10DTe9YSjBJ0UGo7DTgo5m2r8yhCKFdEm/view?usp=drive_link`
 
 ## Estrutura do repositório
 
