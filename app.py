@@ -1,6 +1,6 @@
 import streamlit as st
 import joblib
-import numpy as np
+import pandas as pd
 
 st.set_page_config(
     page_title="Passos Mágicos",
@@ -18,9 +18,13 @@ try:
     st.write("✅ Modelo carregado com sucesso!")
     st.write("Tipo do objeto:", type(modelo))
 
-    # Exemplo de entrada fictícia (ajuste depois para bater com as features reais)
-    exemplo = np.zeros((1, modelo.n_features_in_))  # vetor de zeros só para teste
-    prob = modelo.predict_proba(exemplo)[0][1]      # probabilidade da classe positiva
+    # Criar um DataFrame fictício com as mesmas colunas que o modelo espera
+    # (por enquanto vamos usar apenas uma linha com valores nulos ou zeros)
+    # Ajuste depois para bater com as features reais da base
+    colunas = modelo.feature_names_in_  # pega os nomes das features esperadas
+    exemplo_df = pd.DataFrame([[0]*len(colunas)], columns=colunas)
+
+    prob = modelo.predict_proba(exemplo_df)[0][1]  # probabilidade da classe positiva
 
     st.write("🔍 Teste de previsão com dados fictícios:")
     st.write(f"Probabilidade de risco: {prob:.2f}")
