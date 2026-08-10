@@ -28,6 +28,14 @@ def load_model():
 df = load_data()
 modelo = load_model()
 
+# --- Definição das features ---
+FEATURES_NUMERICAS = [
+    "idade","anos_na_pm","fase","fase_ideal","inde","ian","ida","ieg",
+    "iaa","ips","ipv","matematica","portugues","ingles","defasagem"
+]
+FEATURES_CATEGORICAS = ["genero","instituicao_ensino","pedra"]
+FEATURES = FEATURES_NUMERICAS + FEATURES_CATEGORICAS
+
 # --- Menu lateral ---
 menu = st.sidebar.radio("Navegação", ["📊 Visão Geral", "🎯 Previsão de Risco", "👥 Risco por Aluno", "🤖 Sobre o Modelo"])
 
@@ -50,27 +58,34 @@ if menu == "📊 Visão Geral":
 # --- 🎯 Previsão de Risco ---
 elif menu == "🎯 Previsão de Risco":
     st.title("🎯 Previsão de Risco Individual")
-
     st.write("Preencha os indicadores do aluno:")
 
     entrada = {}
-    # Exemplo: tratar alguns campos categóricos
-    entrada["genero"] = st.selectbox("Gênero", ["Masculino","Feminino"])
-    entrada["pedra"] = st.selectbox("Pedra", df["pedra"].unique())
-    entrada["situacao"] = st.selectbox("Situação", df["situacao"].dropna().unique())
 
-    # Campos numéricos
-    for col in ["idade","inde","ian","ida","ieg","iaa","ips","ipp","ipv","matematica","portugues","ingles"]:
+    # Inputs numéricos
+    for col in FEATURES_NUMERICAS:
         entrada[col] = st.number_input(col, value=0.0)
+
+    # Inputs categóricos
+    entrada["genero"] = st.selectbox("Gênero", ["Masculino","Feminino"])
+    entrada["instituicao_ensino"] = st.selectbox("Instituição de Ensino", df["instituicao_ensino"].dropna().unique())
+    entrada["pedra"] = st.selectbox("Pedra", df["pedra"].dropna().unique())
 
     if st.button("Calcular risco"):
         entrada_df = pd.DataFrame([entrada])
+
+        # Garante que todas as colunas esperadas pelo modelo estão presentes
+        for col in modelo.feature_names_in_:
+            if col not in entrada_df.columns:
+                entrada_df[col] = None
+
         prob = modelo.predict_proba(entrada_df)[0][1]
         risco = "Baixo"
         if prob >= 0.35 and prob < 0.6:
             risco = "Atenção"
         elif prob >= 0.6:
             risco = "Alto"
+
         st.success(f"Probabilidade de risco: {prob:.2f} → {risco}")
 
 # --- 👥 Risco por Aluno ---
