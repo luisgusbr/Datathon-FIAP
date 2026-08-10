@@ -2,9 +2,9 @@
 
 Integrantes:
 
-Raimar de Assis Modesto
-
 Luis Gustavo Barbosa Ribeiro
+
+Raimar de Assis Modesto
 
 Turma: Pós Tech - 11DTAT
 
@@ -62,9 +62,11 @@ A aplicação possui quatro áreas:
 
 ### Link da aplicação
 
-> Após o deploy no Streamlit Community Cloud, coloque aqui o link público.
+`https://datathon-fiap-ms8xqjt5ypjab7cdctnoic.streamlit.app`
 
-`https://SEU-APP.streamlit.app`
+### Link do Video no Google Drive
+
+https://drive.google.com/file/d/10DTe9YSjBJ0UGo7DTgo5m2r8yhCKFdEm/view?usp=drive_link
 
 ## Estrutura do repositório
 
@@ -72,16 +74,16 @@ A aplicação possui quatro áreas:
 .
 ├── app.py
 ├── requirements.txt
-├── modelo_risco.joblib
+├── modelo_risco.pkl
 ├── base_datathon_consolidada.csv
 ├── README.md
 ├── .gitignore
 │
 ├── notebook/
-│   └── Datathon_Passos_Magicos_Analise_ML_V2.ipynb
+│   └── DATATHON_PASSOS_MAGICOS.ipynb
 │
 └── docs/
-    └── Datathon_Passos_Magicos_Storytelling.pdf
+    └── Datathon - Luis e Raimar.pdf
 ```
 
 ## Executar localmente
@@ -96,3 +98,5 @@ streamlit run app.py
 O modelo é uma ferramenta de **apoio à decisão**. A probabilidade de risco não
 deve ser utilizada como decisão automática sobre o aluno e deve ser analisada
 em conjunto com os indicadores e com a equipe da Passos Mágicos.
+
+
