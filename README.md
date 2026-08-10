@@ -72,18 +72,20 @@ A aplicação possui quatro áreas:
 
 ```text
 .
-├── app.py
-├── requirements.txt
-├── modelo_risco.pkl
-├── base_datathon_consolidada.csv
-├── README.md
-├── Video Datathon - Luis e Raimar.mp4
 │
-├── notebook/
+└── Docs/
+│    └── Datathon - Luis e Raimar.pdf
+├── Notebook/
 │   └── DATATHON_PASSOS_MAGICOS.ipynb
-│
-└── docs/
-    └── Datathon - Luis e Raimar.pdf
+├── README.md
+├── Streamlit.txt
+├── Video Datathon - Luis e Raimar.mp4
+├── app.py
+├── base_datathon_consolidada.csv
+├── modelo_risco.pkl
+├── requirements.txt
+
+
 ```
 
 ## Executar localmente
