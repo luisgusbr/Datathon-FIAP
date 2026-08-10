@@ -77,7 +77,7 @@ https://drive.google.com/file/d/10DTe9YSjBJ0UGo7DTgo5m2r8yhCKFdEm/view?usp=drive
 ├── modelo_risco.pkl
 ├── base_datathon_consolidada.csv
 ├── README.md
-├── .gitignore
+├── Video Datathon - Luis e Raimar.mp4
 │
 ├── notebook/
 │   └── DATATHON_PASSOS_MAGICOS.ipynb
