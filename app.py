@@ -1,7 +1,6 @@
 import streamlit as st
-import pandas as pd
+import joblib
 
-# Configuração inicial da página
 st.set_page_config(
     page_title="Passos Mágicos",
     page_icon="📚",
@@ -11,19 +10,15 @@ st.set_page_config(
 st.title("📚 Passos Mágicos")
 st.success("Streamlit funcionando corretamente!")
 
-# --- Etapa 2: Carregar a base ---
-st.subheader("📊 Carregando a base consolidada")
+st.subheader("🤖 Teste de carregamento do modelo")
 
 try:
-    # Lê o CSV
-    df = pd.read_csv("base_datathon_consolidada.csv")
+    # Carrega o modelo
+    modelo = joblib.load("modelo_risco.pkl")
 
-    # Mostra informações básicas
-    st.write("✅ Base carregada com sucesso!")
-    st.write(f"Quantidade de registros: {len(df)}")
-    st.write("Visualização inicial da base:")
-    st.dataframe(df.head())
+    st.write("✅ Modelo carregado com sucesso!")
+    st.write("Tipo do objeto:", type(modelo))
 
 except Exception as e:
-    st.error("❌ Erro ao carregar a base.")
+    st.error("❌ Erro ao carregar o modelo.")
     st.exception(e)
