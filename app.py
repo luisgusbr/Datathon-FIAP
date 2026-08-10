@@ -2,17 +2,24 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Configuração inicial
-st.set_page_config(
-    page_title="Passos Mágicos",
-    page_icon="📚",
-    layout="wide"
-)
+st.set_page_config(page_title="Passos Mágicos", page_icon="📚", layout="wide")
 
-# Carregar base e modelo
+# --- Carregar base e modelo ---
 @st.cache_data
 def load_data():
-    return pd.read_csv("base_datathon_consolidada.csv")
+    df = pd.read_csv("base_datathon_consolidada.csv")
+
+    # Corrigir colunas numéricas com vírgula
+    for col in ["inde","ian","ida","ieg","iaa","ips","ipp","ipv","matematica","portugues","ingles","cg","cf","ct"]:
+        if col in df.columns:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.replace(",", ".", regex=False)
+                .replace("nan", None)
+                .astype(float)
+            )
+    return df
 
 @st.cache_resource
 def load_model():
@@ -22,10 +29,7 @@ df = load_data()
 modelo = load_model()
 
 # --- Menu lateral ---
-menu = st.sidebar.radio(
-    "Navegação",
-    ["📊 Visão Geral", "🎯 Previsão de Risco", "👥 Risco por Aluno", "🤖 Sobre o Modelo"]
-)
+menu = st.sidebar.radio("Navegação", ["📊 Visão Geral", "🎯 Previsão de Risco", "👥 Risco por Aluno", "🤖 Sobre o Modelo"])
 
 # --- 📊 Visão Geral ---
 if menu == "📊 Visão Geral":
@@ -47,13 +51,17 @@ if menu == "📊 Visão Geral":
 elif menu == "🎯 Previsão de Risco":
     st.title("🎯 Previsão de Risco Individual")
 
-    st.write("Preencha os indicadores do aluno para calcular o risco:")
+    st.write("Preencha os indicadores do aluno:")
 
-    # Exemplo simples: pegar colunas numéricas
-    colunas = modelo.feature_names_in_
     entrada = {}
-    for c in colunas:
-        entrada[c] = st.number_input(c, value=0.0)
+    # Exemplo: tratar alguns campos categóricos
+    entrada["genero"] = st.selectbox("Gênero", ["Masculino","Feminino"])
+    entrada["pedra"] = st.selectbox("Pedra", df["pedra"].unique())
+    entrada["situacao"] = st.selectbox("Situação", df["situacao"].dropna().unique())
+
+    # Campos numéricos
+    for col in ["idade","inde","ian","ida","ieg","iaa","ips","ipp","ipv","matematica","portugues","ingles"]:
+        entrada[col] = st.number_input(col, value=0.0)
 
     if st.button("Calcular risco"):
         entrada_df = pd.DataFrame([entrada])
@@ -63,7 +71,6 @@ elif menu == "🎯 Previsão de Risco":
             risco = "Atenção"
         elif prob >= 0.6:
             risco = "Alto"
-
         st.success(f"Probabilidade de risco: {prob:.2f} → {risco}")
 
 # --- 👥 Risco por Aluno ---
@@ -73,17 +80,10 @@ elif menu == "👥 Risco por Aluno":
     try:
         probs = modelo.predict_proba(df[modelo.feature_names_in_])[:,1]
         df["prob_risco"] = probs
-        df["nivel_risco"] = pd.cut(
-            df["prob_risco"],
-            bins=[0,0.35,0.6,1],
-            labels=["Baixo","Atenção","Alto"]
-        )
+        df["nivel_risco"] = pd.cut(df["prob_risco"], bins=[0,0.35,0.6,1], labels=["Baixo","Atenção","Alto"])
 
         filtro = st.selectbox("Filtrar por nível de risco", ["Todos","Baixo","Atenção","Alto"])
-        if filtro != "Todos":
-            df_filtrado = df[df["nivel_risco"]==filtro]
-        else:
-            df_filtrado = df
+        df_filtrado = df if filtro=="Todos" else df[df["nivel_risco"]==filtro]
 
         st.dataframe(df_filtrado[["ra","nome","idade","pedra","prob_risco","nivel_risco"]].sort_values("prob_risco",ascending=False))
 
@@ -94,7 +94,6 @@ elif menu == "👥 Risco por Aluno":
 # --- 🤖 Sobre o Modelo ---
 elif menu == "🤖 Sobre o Modelo":
     st.title("🤖 Sobre o Modelo")
-
     st.markdown("""
     - Modelo: Random Forest Classifier em Pipeline
     - Validação temporal: treino 2022→2023, teste 2023→2024
