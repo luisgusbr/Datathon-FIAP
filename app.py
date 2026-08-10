@@ -1,34 +1,108 @@
 import streamlit as st
-import joblib
 import pandas as pd
+import joblib
 
+# Configuração inicial
 st.set_page_config(
     page_title="Passos Mágicos",
     page_icon="📚",
     layout="wide"
 )
 
-st.title("📚 Passos Mágicos")
-st.success("Streamlit funcionando corretamente!")
+# Carregar base e modelo
+@st.cache_data
+def load_data():
+    return pd.read_csv("base_datathon_consolidada.csv")
 
-st.subheader("🤖 Teste de previsão com o modelo")
+@st.cache_resource
+def load_model():
+    return joblib.load("modelo_risco.pkl")
 
-try:
-    modelo = joblib.load("modelo_risco.pkl")
-    st.write("✅ Modelo carregado com sucesso!")
-    st.write("Tipo do objeto:", type(modelo))
+df = load_data()
+modelo = load_model()
 
-    # Criar um DataFrame fictício com as mesmas colunas que o modelo espera
-    # (por enquanto vamos usar apenas uma linha com valores nulos ou zeros)
-    # Ajuste depois para bater com as features reais da base
-    colunas = modelo.feature_names_in_  # pega os nomes das features esperadas
-    exemplo_df = pd.DataFrame([[0]*len(colunas)], columns=colunas)
+# --- Menu lateral ---
+menu = st.sidebar.radio(
+    "Navegação",
+    ["📊 Visão Geral", "🎯 Previsão de Risco", "👥 Risco por Aluno", "🤖 Sobre o Modelo"]
+)
 
-    prob = modelo.predict_proba(exemplo_df)[0][1]  # probabilidade da classe positiva
+# --- 📊 Visão Geral ---
+if menu == "📊 Visão Geral":
+    st.title("📊 Visão Geral da Base")
 
-    st.write("🔍 Teste de previsão com dados fictícios:")
-    st.write(f"Probabilidade de risco: {prob:.2f}")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total de alunos", len(df))
+    col2.metric("% em defasagem", f"{df['em_defasagem'].mean()*100:.1f}%")
+    col3.metric("Idade média", f"{df['idade'].mean():.1f} anos")
+    col4.metric("INDE médio", f"{df['inde'].mean():.2f}")
 
-except Exception as e:
-    st.error("❌ Erro ao carregar ou prever com o modelo.")
-    st.exception(e)
+    st.subheader("Distribuição por Pedra")
+    st.bar_chart(df["pedra"].value_counts())
+
+    st.subheader("Amostra da base")
+    st.dataframe(df.head())
+
+# --- 🎯 Previsão de Risco ---
+elif menu == "🎯 Previsão de Risco":
+    st.title("🎯 Previsão de Risco Individual")
+
+    st.write("Preencha os indicadores do aluno para calcular o risco:")
+
+    # Exemplo simples: pegar colunas numéricas
+    colunas = modelo.feature_names_in_
+    entrada = {}
+    for c in colunas:
+        entrada[c] = st.number_input(c, value=0.0)
+
+    if st.button("Calcular risco"):
+        entrada_df = pd.DataFrame([entrada])
+        prob = modelo.predict_proba(entrada_df)[0][1]
+        risco = "Baixo"
+        if prob >= 0.35 and prob < 0.6:
+            risco = "Atenção"
+        elif prob >= 0.6:
+            risco = "Alto"
+
+        st.success(f"Probabilidade de risco: {prob:.2f} → {risco}")
+
+# --- 👥 Risco por Aluno ---
+elif menu == "👥 Risco por Aluno":
+    st.title("👥 Ranking de Risco por Aluno")
+
+    try:
+        probs = modelo.predict_proba(df[modelo.feature_names_in_])[:,1]
+        df["prob_risco"] = probs
+        df["nivel_risco"] = pd.cut(
+            df["prob_risco"],
+            bins=[0,0.35,0.6,1],
+            labels=["Baixo","Atenção","Alto"]
+        )
+
+        filtro = st.selectbox("Filtrar por nível de risco", ["Todos","Baixo","Atenção","Alto"])
+        if filtro != "Todos":
+            df_filtrado = df[df["nivel_risco"]==filtro]
+        else:
+            df_filtrado = df
+
+        st.dataframe(df_filtrado[["ra","nome","idade","pedra","prob_risco","nivel_risco"]].sort_values("prob_risco",ascending=False))
+
+    except Exception as e:
+        st.error("Erro ao calcular risco para os alunos.")
+        st.exception(e)
+
+# --- 🤖 Sobre o Modelo ---
+elif menu == "🤖 Sobre o Modelo":
+    st.title("🤖 Sobre o Modelo")
+
+    st.markdown("""
+    - Modelo: Random Forest Classifier em Pipeline
+    - Validação temporal: treino 2022→2023, teste 2023→2024
+    - Métricas:
+        - ROC-AUC: 0,855
+        - PR-AUC: 0,570
+        - Recall: 77,3%
+        - Precision: 44,5%
+        - F1: 56,5%
+    - Threshold: 35%
+    """)
